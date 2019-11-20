@@ -59,6 +59,7 @@ Shader::Shader(const string& vertexShaderPath, const string& geometryShaderPath,
     if(!success) {
         glGetProgramInfoLog(handle, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        exit(-1);
     }
 
     glDeleteShader(vertexShader);

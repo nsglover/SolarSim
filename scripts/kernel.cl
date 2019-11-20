@@ -45,11 +45,13 @@ inline float8 genRands(float x, float y, float z) {
 
 kernel void generateParticles(global Particle* particles) {
     int i = get_global_id(0);
+    int n = get_global_size(0);
     float t = (float) i;
 
     float8 rands = genRands(t, tan(t), 33.151f);
 
-    int b = i < 512 ? 0 : 1;
+    int b = i < 0.50f * n ? 0 : 1;
+    b = 0;
 
     float x = rands[0 + b] - 0.5f;
     float y = rands[1 + b] - 0.5f;
@@ -58,16 +60,16 @@ kernel void generateParticles(global Particle* particles) {
     //float y = sin(t);
     //float z = cos(t) * sin(t);
 
-    particles[i].position.x = 2 * x + 5 * b;
-    particles[i].position.y = 2 * y + 5 * b;
-    particles[i].position.z = 2 * z + 5 * b;
+    particles[i].position.x = 10.0f * (x + 2 * b);
+    particles[i].position.y = 10.0f * (y + 2 * b);
+    particles[i].position.z = 10.0f * (z);
 
-    particles[i].mass = 1E9;
-    particles[i].radius = 0.1;
+    particles[i].mass = 1e8;
+    particles[i].radius = 0.1f;
 
-    particles[i].momentum.x = particles[i].mass * y;
-    particles[i].momentum.y = particles[i].mass * -x;
-    particles[i].momentum.z = particles[i].mass * 0;
+    particles[i].momentum.x = 1 * particles[i].mass * y;
+    particles[i].momentum.y = 1 * particles[i].mass * -x;
+    particles[i].momentum.z = 0;
 }
 
 kernel void calculateForces(global Particle* particles, global float* forces) {
@@ -80,11 +82,9 @@ kernel void calculateForces(global Particle* particles, global float* forces) {
 
         float dist = distance(p1.position, p0.position);
         float forceScalar = pow(dist, -2);
-        
-        float compressionFactor = 0.0f;
 
         if(dist < p0.radius + p1.radius) {
-            forceScalar = -compressionFactor * G * p0.mass * p1.mass;
+            forceScalar = 0;
         }
 
         float3 force = G * p0.mass * p1.mass * forceScalar * normalize(p1.position - p0.position);

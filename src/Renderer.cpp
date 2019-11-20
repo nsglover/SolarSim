@@ -6,7 +6,7 @@
 Renderer::Renderer(int frameWidth, int frameHeight, unsigned int numParticles) {
     vertexArray = 0;
     vertexBuffer = 0;
-    projectionMatrix = glm::perspective(glm::radians(45.0f), (float) frameWidth / (float) frameHeight, 0.01f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(45.0f), (float) frameWidth / (float) frameHeight, 0.0001f, 10000.0f);
 
     glGenVertexArrays(1, &vertexArray);
     glGenBuffers(1, &vertexBuffer);
@@ -38,5 +38,5 @@ void Renderer::renderParticles(const Shader& shader, const Camera& camera, const
 }
 
 void Renderer::setProjection(int frameWidth, int frameHeight) {
-    projectionMatrix = glm::perspective(glm::radians(45.0f), (float) frameWidth / (float) frameHeight, 0.01f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(45.0f), (float) frameWidth / (float) frameHeight, 0.0001f, 10000.0f);
 }

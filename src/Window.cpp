@@ -31,6 +31,7 @@ Window::Window(int width, int height, std::string title) {
 
     //Configure OpenGL state
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_PROGRAM_POINT_SIZE);
 }
 
 bool Window::isOpen() const {

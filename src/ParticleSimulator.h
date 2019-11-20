@@ -31,11 +31,11 @@ private:
 public:
     explicit ParticleSimulator(const string& kernelPath);
 
-    Particle* generateParticles(unsigned int count);
+    vector<Particle> generateParticles(unsigned int count);
     //Returns forces (every three entries represents one vector)
-    const cl_float* calculateParticleForces(const Particle* particles, unsigned int count);
+    const cl_float* calculateParticleForces(const vector<Particle>& particles);
     //Returns positions
-    const cl_float* updateParticlePositions(Particle* particles, const cl_float* forces, unsigned int count, float deltaTime);
+    const cl_float* updateParticlePositions(vector<Particle>& particles, const cl_float* forces, float deltaTime);
 };
 
 

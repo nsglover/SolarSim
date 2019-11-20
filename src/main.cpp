@@ -10,25 +10,6 @@ typedef std::chrono::high_resolution_clock Clock;
 
 float speedMultiplier = 0;
 
-void processInput(Window& window, Camera& camera, float deltaTime) {
-    if(window.getKeyState(GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        window.close();
-
-    if(window.getKeyState(GLFW_KEY_W) == GLFW_PRESS)
-        camera.move(CameraMovement::FORWARD, deltaTime);
-    if(window.getKeyState(GLFW_KEY_A) == GLFW_PRESS)
-        camera.move(CameraMovement::LEFT, deltaTime);
-    if(window.getKeyState(GLFW_KEY_S) == GLFW_PRESS)
-        camera.move(CameraMovement::BACKWARD, deltaTime);
-    if(window.getKeyState(GLFW_KEY_D) == GLFW_PRESS)
-        camera.move(CameraMovement::RIGHT, deltaTime);
-
-    if(window.getKeyState(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        camera.movementSpeed = 10.f;
-    else
-        camera.movementSpeed = 1.5f;
-}
-
 Camera* cameraPtr;
 bool firstMouse = true;
 float lastX, lastY;
@@ -54,6 +35,25 @@ void onKeyPress(GLFWwindow*, int key, int scancode, int action, int mods) {
     }
 }
 
+void processInput(Window& window, Camera& camera, float deltaTime) {
+    if(window.getKeyState(GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        window.close();
+
+    if(window.getKeyState(GLFW_KEY_W) == GLFW_PRESS)
+        camera.move(CameraMovement::FORWARD, deltaTime);
+    if(window.getKeyState(GLFW_KEY_A) == GLFW_PRESS)
+        camera.move(CameraMovement::LEFT, deltaTime);
+    if(window.getKeyState(GLFW_KEY_S) == GLFW_PRESS)
+        camera.move(CameraMovement::BACKWARD, deltaTime);
+    if(window.getKeyState(GLFW_KEY_D) == GLFW_PRESS)
+        camera.move(CameraMovement::RIGHT, deltaTime);
+
+    if(window.getKeyState(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.movementSpeed = 10.f;
+    else
+        camera.movementSpeed = 4.0f;
+}
+
 const unsigned int NUM_PARTICLES = 2048;
 
 int main() {
@@ -71,9 +71,13 @@ int main() {
     Renderer renderer(1440 * 2, 800 * 2, NUM_PARTICLES);
 
     ParticleSimulator simulator(filePrefix + "kernel.cl");
-    auto* particles = simulator.generateParticles(NUM_PARTICLES);
-
-    glPointSize(5);
+    auto particles = simulator.generateParticles(NUM_PARTICLES);
+//    Particle sun;
+//    sun.position = {0, 0, 0};
+//    sun.momentum = {0, 0, 0};
+//    sun.radius = 100.0f;
+//    sun.mass = 1e12;
+//    particles.push_back(sun);
 
     float deltaTime = 0;
 
@@ -82,8 +86,8 @@ int main() {
         auto start = Clock::now();
         window.clear();
 
-        auto* forces = simulator.calculateParticleForces(particles, NUM_PARTICLES);
-        auto* positions = simulator.updateParticlePositions(particles, forces, NUM_PARTICLES, deltaTime / 10 * speedMultiplier);
+        auto* forces = simulator.calculateParticleForces(particles);
+        auto* positions = simulator.updateParticlePositions(particles, forces, deltaTime * speedMultiplier);
 
 //        for(int i = 0; i < NUM_PARTICLES; i++) {
 //            int ix = 3 * i;
