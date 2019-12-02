@@ -1,8 +1,19 @@
 #version 410 core
 
 layout (location = 0) in vec3 position;
-uniform mat4 transform;
+//layout (location = 1) in vec3 momentum;
+layout (location = 2) in float mass;
+layout (location = 3) in float radius;
+
+uniform mat4 view;
+uniform mat4 projection;
+
+out float Radius;
+out float Mass;
+out vec3 pos;
 
 void main() {
-    gl_Position = transform * vec4(position, 1.0);
+    pos = position;
+    Radius = radius;
+    Mass = mass;
 }

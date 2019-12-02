@@ -55,20 +55,20 @@ vector<Particle> ParticleSimulator::generateParticles(unsigned int count) {
     // Bind kernel arguments to kernel
     generateKernel.setArg(0, output);
 
-    runKernel1D(generateKernel, count, 64);
+    runKernel1D(generateKernel, count, 1);
 
     commandQueue.enqueueReadBuffer(output, CL_TRUE, 0, dataSize, particles.data());
 
     return particles;
 }
 
-const cl_float* ParticleSimulator::calculateParticleForces(const vector<Particle>& particles) {
+const cl_float* ParticleSimulator::calculateParticleForces(vector<Particle>& particles) {
     int count = particles.size();
     auto* forces = new float[count * 3];
     size_t inputSize = count * sizeof(Particle);
     size_t outputSize = count * 3 * sizeof(float);
 
-    cl::Buffer input(context, CL_MEM_READ_ONLY, inputSize);
+    cl::Buffer input(context, CL_MEM_READ_WRITE, inputSize);
     cl::Buffer output(context, CL_MEM_WRITE_ONLY, outputSize);
 
     // Bind memory buffers
@@ -78,41 +78,37 @@ const cl_float* ParticleSimulator::calculateParticleForces(const vector<Particle
     forceKernel.setArg(0, input);
     forceKernel.setArg(1, output);
 
-    runKernel2D(forceKernel, count, 128);
+    runKernel2D(forceKernel, count, 1);
 
     commandQueue.enqueueReadBuffer(output, CL_TRUE, 0, outputSize, forces);
+    commandQueue.enqueueReadBuffer(input, CL_TRUE, 0, inputSize, particles.data());
 
     return forces;
 }
 
-const float* ParticleSimulator::updateParticlePositions(vector<Particle>& particles, const cl_float* forces, float deltaTime) {
-    int count = particles.size();
-    auto* positions = new float[count * 3];
-    size_t particleSize = count * sizeof(Particle);
-    size_t forceInputSize = count * 3 * sizeof(float);
-    size_t outputSize = count * 3 * sizeof(float);
+void ParticleSimulator::updateParticlePositions(vector<Particle>& particles, float deltaTime) {
+    auto* forces = calculateParticleForces(particles);
 
-    cl::Buffer particleInputOutput(context, CL_MEM_READ_WRITE, particleSize);
+    int count = particles.size();
+    size_t particleDataSize = count * sizeof(Particle);
+    size_t forceInputSize = count * 3 * sizeof(float);
+
+    cl::Buffer particleInputOutput(context, CL_MEM_READ_WRITE, particleDataSize);
     cl::Buffer forceInput(context, CL_MEM_READ_ONLY, forceInputSize);
-    cl::Buffer output(context, CL_MEM_WRITE_ONLY, outputSize);
-    cl::Buffer particleOutput(context, CL_MEM_WRITE_ONLY, particleSize);
+    cl::Buffer output(context, CL_MEM_WRITE_ONLY, particleDataSize);
 
     // Bind memory buffers
-    commandQueue.enqueueWriteBuffer(particleInputOutput, CL_TRUE, 0, particleSize, particles.data());
+    commandQueue.enqueueWriteBuffer(particleInputOutput, CL_TRUE, 0, particleDataSize, particles.data());
     commandQueue.enqueueWriteBuffer(forceInput, CL_TRUE, 0, forceInputSize, forces);
 
     // Bind kernel arguments to kernel
     updateKernel.setArg(0, particleInputOutput);
     updateKernel.setArg(1, forceInput);
     updateKernel.setArg(2, deltaTime);
-    updateKernel.setArg(3, output);
 
-    runKernel1D(updateKernel, count, 64);
+    runKernel1D(updateKernel, count, 1);
 
-    commandQueue.enqueueReadBuffer(output, CL_TRUE, 0, outputSize, positions);
-    commandQueue.enqueueReadBuffer(particleInputOutput, CL_TRUE, 0, particleSize, particles.data());
-
-    return positions;
+    commandQueue.enqueueReadBuffer(particleInputOutput, CL_TRUE, 0, particleDataSize, particles.data());
 }
 
 void ParticleSimulator::runKernel1D(const cl::Kernel& kernel, unsigned int globalSize, unsigned int localSize) const {

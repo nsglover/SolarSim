@@ -3,6 +3,7 @@
 #include "Shader.h"
 #include "Renderer.h"
 #include "Camera.h"
+#include <OpenGL/glu.h>
 
 
 using namespace std;
@@ -49,18 +50,16 @@ void processInput(Window& window, Camera& camera, float deltaTime) {
         camera.move(CameraMovement::RIGHT, deltaTime);
 
     if(window.getKeyState(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        camera.movementSpeed = 10.f;
+        camera.movementSpeed = 500.f;
     else
-        camera.movementSpeed = 4.0f;
+        camera.movementSpeed = 150.0f;
 }
 
-const unsigned int NUM_PARTICLES = 2048;
-
 int main() {
-    const string filePrefix = "/Users/nathanielglover/Projects/SolarSim/scripts/";
+    const string filePrefix = "/Users/nathanielglover/Documents/School/33-151/SolarSim/scripts/";
 
     Window window(1440, 800, "SolarSim");
-    window.setClearColor(0.0f, 0.0f, 0.2f);
+    window.setClearColor(0.0f, 0.0f, 0.1f);
 
     Camera camera;
     cameraPtr = &camera;
@@ -68,16 +67,16 @@ int main() {
     window.setKeyCallback(onKeyPress);
 
     Shader shader(filePrefix + "vertex.glsl", filePrefix + "geometry.glsl", filePrefix + "fragment.glsl");
-    Renderer renderer(1440 * 2, 800 * 2, NUM_PARTICLES);
+//    Shader shader(filePrefix + "vertex.glsl", filePrefix + "fragment.glsl");
+    Renderer renderer(1440 * 2, 800 * 2);
 
     ParticleSimulator simulator(filePrefix + "kernel.cl");
-    auto particles = simulator.generateParticles(NUM_PARTICLES);
-//    Particle sun;
-//    sun.position = {0, 0, 0};
-//    sun.momentum = {0, 0, 0};
-//    sun.radius = 100.0f;
-//    sun.mass = 1e12;
-//    particles.push_back(sun);
+    auto particles = simulator.generateParticles(2048);
+
+    Particle sun1(-100, -100, -100, 5e14, 5e14, 5e14, 1e14, 5);
+    Particle sun2(150, 50, 100, -10e14, -10e14, -10e14, 1e14, 5);
+    particles.push_back(sun1);
+    particles.push_back(sun2);
 
     float deltaTime = 0;
 
@@ -86,24 +85,15 @@ int main() {
         auto start = Clock::now();
         window.clear();
 
-        auto* forces = simulator.calculateParticleForces(particles);
-        auto* positions = simulator.updateParticlePositions(particles, forces, deltaTime * speedMultiplier);
+        simulator.updateParticlePositions(particles, deltaTime * speedMultiplier);
 
-//        for(int i = 0; i < NUM_PARTICLES; i++) {
-//            int ix = 3 * i;
-//            int iy = 3 * i + 1;
-//            int iz = 3 * i + 2;
-//
-//            printf("Pos: (%f, %f, %f)\n", positions[ix], positions[iy], positions[iz]);
-//            printf("Force: (%f, %f, %f)\n\n", forces[ix], forces[iy], forces[iz]);
-//        }
-//        printf("\n\n\n");
-
-        renderer.renderParticles(shader, camera, positions);
+        renderer.renderParticles(shader, camera, particles);
 
         window.swapBuffers();
         window.processInput();
         processInput(window, camera, deltaTime);
+
+//        cout << gluErrorString(glGetError()) << endl;
 
         std::chrono::duration<float> fs = Clock::now() - start;
         deltaTime = fs.count();

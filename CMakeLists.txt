@@ -3,7 +3,7 @@ project(SolarSim)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(SolarSim glad/src/glad.c src/main.cpp src/Window.cpp src/Window.h src/Particle.h src/ParticleSimulator.cpp src/ParticleSimulator.h src/Renderer.cpp src/Renderer.h src/Shader.cpp src/Shader.h src/Camera.cpp src/Camera.h)
+add_executable(SolarSim glad/src/glad.c src/main.cpp src/Window.cpp src/Window.h src/ParticleSimulator.cpp src/ParticleSimulator.h src/Renderer.cpp src/Renderer.h src/Shader.cpp src/Shader.h src/Camera.cpp src/Camera.h src/Particle.cpp src/Particle.h)
 
 find_package(glfw3 3.3 REQUIRED)
 find_package(OpenGL REQUIRED)

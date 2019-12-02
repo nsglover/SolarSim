@@ -28,14 +28,14 @@ private:
     void runKernel1D(const cl::Kernel& kernel, unsigned int globalSize, unsigned int localSize) const;
     void runKernel2D(const cl::Kernel& kernel, unsigned int globalSize, unsigned int localSize) const;
 
+    //Returns forces (every three entries represents one vector)
+    const cl_float* calculateParticleForces(vector<Particle>& particles);
+
 public:
     explicit ParticleSimulator(const string& kernelPath);
 
     vector<Particle> generateParticles(unsigned int count);
-    //Returns forces (every three entries represents one vector)
-    const cl_float* calculateParticleForces(const vector<Particle>& particles);
-    //Returns positions
-    const cl_float* updateParticlePositions(vector<Particle>& particles, const cl_float* forces, float deltaTime);
+    void updateParticlePositions(vector<Particle>& particles, float deltaTime);
 };
 
 

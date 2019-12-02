@@ -15,6 +15,8 @@ private:
 public:
     explicit Shader(const string& vertexShaderPath, const string& geometryShaderPath, const string& fragmentShaderPath);
 
+    explicit Shader(const string& vertexShaderPath, const string& fragmentShaderPath);
+
     void use() const;
 
     void setBool(const std::string& name, bool value) const;
