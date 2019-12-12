@@ -56,7 +56,7 @@ void processInput(Window& window, Camera& camera, float deltaTime) {
 }
 
 int main() {
-    const string filePrefix = "/Users/nathanielglover/Documents/School/33-151/SolarSim/scripts/";
+    const string filePrefix = "/Users/nathanielglover/School/Previous Semesters/Semester 1/33-151/SolarSim/scripts/";
 
     Window window(1440, 800, "SolarSim");
     window.setClearColor(0.0f, 0.0f, 0.1f);
@@ -67,16 +67,10 @@ int main() {
     window.setKeyCallback(onKeyPress);
 
     Shader shader(filePrefix + "vertex.glsl", filePrefix + "geometry.glsl", filePrefix + "fragment.glsl");
-//    Shader shader(filePrefix + "vertex.glsl", filePrefix + "fragment.glsl");
     Renderer renderer(1440 * 2, 800 * 2);
 
     ParticleSimulator simulator(filePrefix + "kernel.cl");
     auto particles = simulator.generateParticles(2048);
-
-    Particle sun1(-100, -100, -100, 5e14, 5e14, 5e14, 1e14, 5);
-    Particle sun2(150, 50, 100, -10e14, -10e14, -10e14, 1e14, 5);
-    particles.push_back(sun1);
-    particles.push_back(sun2);
 
     float deltaTime = 0;
 

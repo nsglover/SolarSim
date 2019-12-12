@@ -32,8 +32,13 @@ ParticleSimulator::ParticleSimulator(const string& kernelPath) {
         program = cl::Program(context, source);
         program.build({device});
 
+        //0: Spinning cloud (with star)
+        //1: Spinning cloud (no star)
+        //2: Colliding galaxies
+        //3: Colliding star and galaxy
+
         // Create kernel objects
-        generateKernel = cl::Kernel(program, "generateParticles", nullptr);
+        generateKernel = cl::Kernel(program, "generateParticles0", nullptr);
         forceKernel = cl::Kernel(program, "calculateForces", nullptr);
         updateKernel = cl::Kernel(program, "updateStates", nullptr);
     } catch(const cl::Error& err) {

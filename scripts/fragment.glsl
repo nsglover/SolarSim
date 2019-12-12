@@ -42,5 +42,10 @@ void main()
     gl_FragDepth = ((gl_DepthRange.diff * ndcDepth) + gl_DepthRange.near + gl_DepthRange.far) * 0.5f;
 
     float factor = exp(-(mass - 1e10) / 5e11);
+
     pixel = vec4(1 - factor, (0.5f + factor) * ((normal + 1.0f) * 0.5f).yz, 1.0f);
+
+    if(mass >= 1e15) {
+        pixel = vec4(((normal)).xyz, 1.0f);
+    }
 }

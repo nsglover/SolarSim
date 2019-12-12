@@ -75,34 +75,149 @@ inline float getRadius(Particle particle) {
     return particle.data[R];
 }
 
-kernel void generateParticles(global Particle* particles) {
+//Spinning cloud (with star)
+kernel void generateParticles0(global Particle* particles) {
+    int i = get_global_id(0);
+    float t = (float) i;
+
+    float8 rands = genRands(t, tan(t), 33.151f);
+
+    float x = rands[0] - 0.5f;
+    float y = rands[1] - 0.5f;
+    float z = rands[2] - 0.5f;
+
+    particles[i].data[PX] = 100.0f * x;
+    particles[i].data[PY] = 100.0f * y;
+    particles[i].data[PZ] = 100.0f * z;
+
+    float mass = 1e11;
+
+    particles[i].data[MX] = 25.0f * mass * y;
+    particles[i].data[MY] = 25.0f * mass * -x;
+    particles[i].data[MZ] = 25.0f * mass * 0;
+
+    particles[i].data[M] = mass + (rands[3] - 0.5f) * mass;
+    particles[i].data[R] = particles[i].data[M] / (2 * mass);
+
+
+    if(i == 0) { //Star
+        mass *= 1e4;
+        particles[i].data[PX] = 0;
+        particles[i].data[PY] = 0;
+        particles[i].data[PZ] = 0;
+
+        particles[i].data[MX] = 0;
+        particles[i].data[MY] = 0;
+        particles[i].data[MZ] = 0;
+
+        particles[i].data[M] = mass;
+        particles[i].data[R] = 3.f;
+    } else { //Galaxy
+        particles[i].data[PX] = 100.0f * x;
+        particles[i].data[PY] = 100.0f * y;
+        particles[i].data[PZ] = 100.0f * z;
+
+        particles[i].data[MX] = 80.0f * mass * y;
+        particles[i].data[MY] = 80.0f * mass * -x;
+        particles[i].data[MZ] = 0;
+
+        particles[i].data[M] = mass;
+        particles[i].data[R] = 0.5f;
+    }
+}
+
+//Spinning cloud (no star)
+kernel void generateParticles1(global Particle* particles) {
+    int i = get_global_id(0);
+    float t = (float) i;
+
+    float8 rands = genRands(t, tan(t), 33.151f);
+
+    float x = rands[0] * 2 * PI;
+    float y = rands[1] * 2 * PI;
+    float z = rands[2];
+
+    particles[i].data[PX] = 100.0f * z * cos(x) * cos(y);
+    particles[i].data[PY] = 100.0f * z * cos(x) * sin(y);
+    particles[i].data[PZ] = 100.0f * z * sin(x);
+
+    float mass = 1e11;
+
+    particles[i].data[MX] = 1.0f * mass * particles[i].data[PY];
+    particles[i].data[MY] = 1.0f * mass * -particles[i].data[PX];
+    particles[i].data[MZ] = 0.0f * mass * 0;
+
+    particles[i].data[M] = mass + (rands[3] - 0.5f) * mass;
+    particles[i].data[R] = particles[i].data[M] / (2 * mass);
+}
+
+//Colliding galaxies
+kernel void generateParticles2(global Particle* particles) {
     int i = get_global_id(0);
     int n = get_global_size(0);
     float t = (float) i;
 
     float8 rands = genRands(t, tan(t), 33.151f);
 
-    int b = i < 0.50f * n ? 0 : 0;
+    int b = i < 0.50f * n ? 0 : 1;
 
     float x = rands[0 + 3 * b] - 0.5f;
     float y = rands[1 + 3 * b] - 0.5f;
     float z = rands[2 + 3 * b] - 0.5f;
-    //float x = cos(t);
-    //float y = sin(t);
-    //float z = cos(t) * sin(t);
 
-    particles[i].data[PX] = 100.0f * (x + b);
-    particles[i].data[PY] = 100.0f * (y + b);
-    particles[i].data[PZ] = 100.0f * (z + b);
+    particles[i].data[PX] = (100.0f + 50.0f * b) * (x + b);
+    particles[i].data[PY] = (100.0f + 50.0f * b) * (y - 0.25f * b);
+    particles[i].data[PZ] = (100.0f + 50.0f * b) * z;
 
     float mass = 1e11;
 
-    particles[i].data[MX] = 15.0f * mass * y;
-    particles[i].data[MY] = 15.0f * mass * -x;
-    particles[i].data[MZ] = 15.0f * mass * 0;
+    particles[i].data[MX] = -10 * b * mass + 20 * mass * y;
+    particles[i].data[MY] = 20 * mass * -x;
+    particles[i].data[MZ] = 0;
 
-    particles[i].data[M] = mass;
-    particles[i].data[R] = 0.5f;
+    particles[i].data[M] = mass * (1 + 0.5f * b);
+    particles[i].data[R] = 0.2f * (1 + 0.5f * b);
+}
+
+//Colliding star and galaxy
+kernel void generateParticles3(global Particle* particles) {
+    int i = get_global_id(0);
+    float t = (float) i;
+
+    float8 rands = genRands(t, tan(t), 33.151f);
+
+    float x = rands[0] - 0.5f;
+    float y = rands[1] - 0.5f;
+    float z = rands[2] - 0.5f;
+
+    float mass = 1e10;
+
+    if(i == 0) { //Star
+        mass *= 1e4;
+        particles[i].data[PX] = -75;
+        particles[i].data[PY] = -75;
+        particles[i].data[PZ] = 0;
+
+        float factor = 5.0f;
+
+        particles[i].data[MX] = factor * 1 * mass;
+        particles[i].data[MY] = factor * 1.5 * mass;
+        particles[i].data[MZ] = 0;
+
+        particles[i].data[M] = mass;
+        particles[i].data[R] = 2.f;
+    } else { //Galaxy
+        particles[i].data[PX] = 110.0f * x;
+        particles[i].data[PY] = 110.0f * y;
+        particles[i].data[PZ] = 110.0f * z;
+
+        particles[i].data[MX] = 0;
+        particles[i].data[MY] = 0;
+        particles[i].data[MZ] = 0;
+
+        particles[i].data[M] = mass;
+        particles[i].data[R] = 0.5f;
+    }
 }
 
 kernel void calculateForces(global Particle* particles, global float* forces) {
